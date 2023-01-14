@@ -12,7 +12,6 @@ from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
-
 @hydra.main(config_path=".", config_name="config")
 def enhance(cfg: DictConfig) -> None:
     """Run the dummy enhancement."""
@@ -32,12 +31,19 @@ def enhance(cfg: DictConfig) -> None:
     )
 
     for scene, listener in tqdm(scene_listener_pairs):
-        sample_freq, signal = wavfile.read(
+        fs, signal1 = wavfile.read(
             pathlib.Path(cfg.path.scenes_folder) / f"{scene}_mix_CH1.wav"
         )
+        _, signal2 = wavfile.read(
+            pathlib.Path(cfg.path.scenes_folder) / f"{scene}_mix_CH2.wav"
+        )
+        _, signal3 = wavfile.read(
+            pathlib.Path(cfg.path.scenes_folder) / f"{scene}_mix_CH3.wav"
+        )
+        
 
         # Convert to 32-bit floating point scaled between -1 and 1
-        signal = (signal / 32768.0).astype(np.float32)
+        signal1 = (signal1 / 32768.0).astype(np.float32)
 
         # # Audiograms can read like this, but they are not needed for the baseline
         #
@@ -55,7 +61,7 @@ def enhance(cfg: DictConfig) -> None:
         #
 
         wavfile.write(
-            enhanced_folder / f"{scene}_{listener}_enhanced.wav", sample_freq, signal
+            enhanced_folder / f"{scene}_{listener}_enhanced.wav", fs, signal1
         )
 
 
