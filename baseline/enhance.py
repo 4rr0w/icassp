@@ -30,6 +30,7 @@ def enhance(cfg: DictConfig) -> None:
         scenes_listeners, cfg.evaluate.small_test
     )
 
+
     for scene, listener in tqdm(scene_listener_pairs):
         fs, signal1 = wavfile.read(
             pathlib.Path(cfg.path.scenes_folder) / f"{scene}_mix_CH1.wav"
