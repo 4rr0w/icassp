@@ -8,7 +8,6 @@ import os, random, sys
 # from pylab import plot,show, figure, imshow
 # import matplotlib.pyplot as plt
 import librosa.core as audio
-
 import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import TimeDistributed,Dense,LSTM,Input,Lambda,Dropout #,CuDNNLSTM, CuDNNGRU,,BatchNormalization,
@@ -89,11 +88,6 @@ logger = logging.getLogger(__name__)
 
 @hydra.main(config_path=".", config_name="config")
 def train(cfg: DictConfig) -> None:
-    """Run the dummy enhancement."""
-
-    enhanced_folder = pathlib.Path("enhanced_signals")
-    enhanced_folder.mkdir(parents=True, exist_ok=True)
-
     with open(cfg.path.scenes_listeners_file, "r", encoding="utf-8") as fp:
         scenes_listeners = json.load(fp)
 
@@ -109,7 +103,7 @@ def train(cfg: DictConfig) -> None:
     target = []
     noise = []
 
-    for scene, listener in tqdm(scene_listener_pairs):
+    for scene, listener in tqdm(scene_listener_pairs[:50]):
 
         # # Audiograms can read like this, but they are not needed for the baseline
         #
@@ -168,9 +162,9 @@ def train(cfg: DictConfig) -> None:
         interferer2 = (interferer2 / 32768.0).astype(np.float32)
         interferer3 = (interferer3 / 32768.0).astype(np.float32)
 
-        mixed.append(signal1[0])
-        target.append(target1[0])
-        noise.append(interferer1[0])
+        mixed.append(signal1[:,0])
+        target.append(target1[:,0])
+        noise.append(interferer1[:,0])
 
     mir_music = noise
     mir_voice = target
@@ -280,6 +274,7 @@ def train(cfg: DictConfig) -> None:
 
     date_time = datetime.datetime.now()
     model_path = os.getcwd()+f"/Models/Model_{date_time}.hdf5"
+    print(model_path)
     model.save(model_path)
 
 if __name__ == "__main__":

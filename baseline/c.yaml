@@ -1,0 +1,29 @@
+path:
+  root: "../../data/clarity_CEC2_data"
+  metadata_dir: "../../data/clarity_CEC2_data/clarity_data/metadata"
+  scenes_listeners_file: "../../data/clarity_CEC2_data/clarity_data/metadata/scenes_listeners.dev.json"
+  listeners_file: "../../data/clarity_CEC2_data/clarity_data/metadata/listeners.json"
+  scenes_folder: "../../data/clarity_CEC2_data/clarity_data/dev/scenes"
+  exp_folder: ./exp # folder to store enhanced signals and final results
+  
+alr:
+  nfir: 220
+  fs: 44100
+
+compressor:
+  threshold: 0.35
+  attenuation: 0.1
+  attack: 50
+  release: 1000
+  rms_buffer_size: 0.064
+
+soft_clip: True
+
+evaluate:
+  set_random_seed: True
+  small_test: False
+
+# hydra config
+hydra:
+  run:
+    dir: ${path.exp_folder}

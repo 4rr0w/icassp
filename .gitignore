@@ -4,3 +4,5 @@ li64*
 pyvenv.cfg
 exp
 __pycache__
+
+exp/
