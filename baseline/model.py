@@ -107,9 +107,9 @@ def enhance(cfg: DictConfig) -> None:
     # # and write it out as the enhanced signal
     # #
 
-    # wavfile.write(
-    #     f"../../{scene}_{listener}_enhanced.wav", fs, combined_signal
-    # )
+    wavfile.write(
+        f"../../{scene}_{listener}_enhanced.wav", fs, combined_signal
+    )
     
     # data = [
     #     ch1_data, 
@@ -125,21 +125,5 @@ def enhance(cfg: DictConfig) -> None:
 
 if __name__ == "__main__":
     enhance()
-
-
-import json
-import logging
-import pathlib
-
-import hydra
-import numpy as np
-from evaluate import make_scene_listener_list
-from omegaconf import DictConfig
-from scipy.io import wavfile
-from tqdm import tqdm
-
-from scipy.signal import stft, istft
-
-logger = logging.getLogger(__name__)
 
 
