@@ -98,12 +98,20 @@ def train(cfg: DictConfig) -> None:
     scene_listener_pairs = make_scene_listener_list(
         scenes_listeners, cfg.evaluate.small_test
     )
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> 02b7f3f (cnn model and clean code)
     mixed = []
     target = []
     noise = []
 
     for scene, listener in tqdm(scene_listener_pairs[:50]):
+<<<<<<< HEAD
+=======
+        print(scene, listener)
+>>>>>>> 02b7f3f (cnn model and clean code)
 
         # # Audiograms can read like this, but they are not needed for the baseline
         #
@@ -185,7 +193,11 @@ def train(cfg: DictConfig) -> None:
 
 
     nfft = 1024
+<<<<<<< HEAD
     fs = 16000
+=======
+    fs = 41000
+>>>>>>> 02b7f3f (cnn model and clean code)
 
     x_data,l1  = spectrumSequence(musicAddedData,nfft,fs)
     y1_data,l2 = spectrumSequence(voiceData,nfft,fs)
@@ -217,8 +229,12 @@ def train(cfg: DictConfig) -> None:
     l3 = max(l3)
     maxL = max(l1,l2,l3)
 
+<<<<<<< HEAD
     del mir_music, mir_voice #, combinedDataFrames
     #
+=======
+    del mir_music, mir_voice #combinedDataFrames
+>>>>>>> 02b7f3f (cnn model and clean code)
     train_x = pad_seq(x_data,maxL)
     y1      = pad_seq(y1_data,maxL)
     y2      = pad_seq(y2_data,maxL)
@@ -233,8 +249,11 @@ def train(cfg: DictConfig) -> None:
     n_units = 600 #int(2*nfft/1)
 
     shape = train_x.shape[1:]
+<<<<<<< HEAD
     n_outs = train_x.shape[2] # Note: Not train_x.shape[1:], which returns shape for input_shape, instead of int.
 
+=======
+>>>>>>> 02b7f3f (cnn model and clean code)
 
     # # CPU Version :: Functional API
     regularizer = reg.l2(0.05)

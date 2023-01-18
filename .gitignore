@@ -5,4 +5,7 @@ pyvenv.cfg
 exp
 __pycache__
 
+
 exp/
+logs/
+records/

@@ -34,6 +34,8 @@ def report_score(cfg: DictConfig) -> None:
             [selected_results_df[["scene", "listener"]], selection_df]
         ).drop_duplicates(keep=False)
         print(difference)
+        print(f"Scores based on {len(selected_results_df)} scenes.")
+        print(selected_results_df[["haspi", "hasqi", "combined"]].mean(axis=0))
     else:
         # All expected results were found so report the mean score
         print(f"Scores based on {len(selected_results_df)} scenes.")

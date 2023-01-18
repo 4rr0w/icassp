@@ -144,8 +144,8 @@ def run_calculate_si(cfg: DictConfig) -> None:
         # amplify left and right ear signals
         audiogram = listener_audiograms[listener]
 
-        out_l = amplify_signal(signal[:, 0], audiogram, "l", enhancer, compressor)
-        out_r = amplify_signal(signal[:, 1], audiogram, "r", enhancer, compressor)
+        out_l = amplify_signal(signal[:,0], audiogram, "l", enhancer, compressor)
+        out_r = amplify_signal(signal[:,1], audiogram, "r", enhancer, compressor)
         amplified = np.stack([out_l, out_r], axis=1)
 
         if cfg.soft_clip:
