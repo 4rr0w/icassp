@@ -29,11 +29,11 @@ def report_score(cfg: DictConfig) -> None:
     selected_results_df = pd.merge(results_df, selection_df, on=["scene", "listener"])
 
     if len(selected_results_df) != len(selection_df):
-        print("The following results were not found:")
-        difference = pd.concat(
-            [selected_results_df[["scene", "listener"]], selection_df]
-        ).drop_duplicates(keep=False)
-        print(difference)
+        # print("The following results were not found:")
+        # difference = pd.concat(
+        #     [selected_results_df[["scene", "listener"]], selection_df]
+        # ).drop_duplicates(keep=False)
+        # print(difference)
         print(f"Scores based on {len(selected_results_df)} scenes.")
         print(selected_results_df[["haspi", "hasqi", "combined"]].mean(axis=0))
     else:
@@ -44,3 +44,8 @@ def report_score(cfg: DictConfig) -> None:
 
 if __name__ == "__main__":
     report_score()
+
+# Scores based on 556 scenes.
+# haspi       0.101743
+# hasqi       0.088172
+# combined    0.094957

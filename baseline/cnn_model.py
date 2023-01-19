@@ -19,25 +19,6 @@ import tensorflow as tf
 from tensorflow.keras.layers import Conv2D, Input, LeakyReLU, Flatten, Dense, Reshape, Conv2DTranspose, BatchNormalization, Activation
 from tensorflow.keras import Model, Sequential
 
-def tf_record_parser(record):
-    keys_to_features = {
-        "noise_stft_phase": tf.io.FixedLenFeature((), tf.string, default_value=""),
-        'noise_stft_mag_features': tf.io.FixedLenFeature([], tf.string),
-        "clean_stft_magnitude": tf.io.FixedLenFeature((), tf.string)
-    }
-
-    features = tf.io.parse_single_example(record, keys_to_features)
-
-    noise_stft_mag_features = tf.io.decode_raw(features['noise_stft_mag_features'], tf.float32)
-    clean_stft_magnitude = tf.io.decode_raw(features['clean_stft_magnitude'], tf.float32)
-    noise_stft_phase = tf.io.decode_raw(features['noise_stft_phase'], tf.float32)
-
-    # reshape input and annotation images
-    noise_stft_mag_features = tf.reshape(noise_stft_mag_features, (129, 8, 1), name="noise_stft_mag_features")
-    clean_stft_magnitude = tf.reshape(clean_stft_magnitude, (129, 1, 1), name="clean_stft_magnitude")
-    noise_stft_phase = tf.reshape(noise_stft_phase, (129,), name="noise_stft_phase")
-
-    return noise_stft_mag_features, clean_stft_magnitude
 
 windowLength = 256
 overlap      = round(0.25 * windowLength) # overlap of 75%
@@ -53,18 +34,6 @@ print("inputFs:",inputFs)
 print("fs:",fs)
 print("numFeatures:",numFeatures)
 print("numSegments:",numSegments)
-
-train_dataset = tf.data.TFRecordDataset(['./records/train_mix_0.tfrecords'])
-train_dataset = train_dataset.map(tf_record_parser)
-train_dataset = train_dataset.shuffle(8192)
-train_dataset = train_dataset.repeat()
-train_dataset = train_dataset.batch(512)
-train_dataset = train_dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-
-test_dataset = tf.data.TFRecordDataset(['./records/test_mix_0.tfrecords'])
-test_dataset = test_dataset.map(tf_record_parser)
-test_dataset = test_dataset.repeat(1)
-test_dataset = test_dataset.batch(512)
 
 
 def conv_block(x, filters, kernel_size, strides, padding='same', use_bn=True):
@@ -189,6 +158,47 @@ def build_model(l2_strength):
                 metrics=[tf.keras.metrics.RootMeanSquaredError('rmse')])
   return model
 
+def tf_record_parser(record):
+    keys_to_features = {
+        "noise_stft_phase": tf.io.FixedLenFeature((), tf.string, default_value=""),
+        'noise_stft_mag_features': tf.io.FixedLenFeature([], tf.string),
+        "clean_stft_magnitude": tf.io.FixedLenFeature((), tf.string)
+    }
+
+    features = tf.io.parse_single_example(record, keys_to_features)
+
+    noise_stft_mag_features = tf.io.decode_raw(features['noise_stft_mag_features'], tf.float32)
+    clean_stft_magnitude = tf.io.decode_raw(features['clean_stft_magnitude'], tf.float32)
+    noise_stft_phase = tf.io.decode_raw(features['noise_stft_phase'], tf.float32)
+
+    # reshape input and annotation images
+    noise_stft_mag_features = tf.reshape(noise_stft_mag_features, (129, 8, 1), name="noise_stft_mag_features")
+    clean_stft_magnitude = tf.reshape(clean_stft_magnitude, (129, 1, 1), name="clean_stft_magnitude")
+    noise_stft_phase = tf.reshape(noise_stft_phase, (129,), name="noise_stft_phase")
+
+    return noise_stft_mag_features, clean_stft_magnitude
+    
+def get_train_val_dataset(train_path, test_path):
+ 
+  train_tf_records = glob.glob(train_path)
+  val_tf_records = glob.glob(test_path)
+  # print(train_tf_records, val_tf_records)
+
+  train_dataset = tf.data.TFRecordDataset(train_tf_records)
+  train_dataset = train_dataset.map(tf_record_parser)
+  train_dataset = train_dataset.shuffle(8192)
+  train_dataset = train_dataset.repeat()
+  train_dataset = train_dataset.batch(512)
+  train_dataset = train_dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+
+  test_dataset = tf.data.TFRecordDataset(val_tf_records)
+  test_dataset = test_dataset.map(tf_record_parser)
+  test_dataset = test_dataset.repeat(1)
+  test_dataset = test_dataset.batch(512)
+
+  return train_dataset, test_dataset
+
+
 model = build_model(l2_strength=0.0)
 model.summary()
 
@@ -196,16 +206,32 @@ early_stopping_callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', p
 
 logdir = os.path.join("logs", datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
 tensorboard_callback = tf.keras.callbacks.TensorBoard(logdir, update_freq='batch')
-checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath='./denoiser_cnn_log_mel_generator.h5', 
+checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath='./denoiser_cnn_mix.h5', 
                                                          monitor='val_loss', save_best_only=True)
 
+## Prepare and get datasets
+path_to_train_tfrecords = os.path.join('./records/', 'train_1000_*.tfrecords')
+path_to_val_tfrecords = os.path.join('./records/', 'val_1000_*.tfrecords')
+
+
+train_dataset, test_dataset = get_train_val_dataset(path_to_train_tfrecords, path_to_val_tfrecords)
+
+baseline_val_loss = model.evaluate(test_dataset)[0]
+print(f"Baseline loss {baseline_val_loss}")
+
 model.fit(train_dataset,
-         steps_per_epoch=500, # you might need to change this
+         steps_per_epoch=100, # you might need to change this
          validation_data=test_dataset,
          epochs=20,
          callbacks=[early_stopping_callback, tensorboard_callback, checkpoint_callback]
         )
 
-baseline_val_loss = model.evaluate(test_dataset)
-print(f"Baseline accuracy {baseline_val_loss}")
-model.save('./denoiser_cnn_mix.h5')
+
+
+val_loss = model.evaluate(test_dataset)[0]
+if val_loss < baseline_val_loss:
+  print("New model saved.", val_loss, baseline_val_loss)
+  model.save('./denoiser_cnn_mix.h5')
+else:
+  print("New model not saved, val_loss >= baseline_loss, won't be useful", val_loss, baseline_val_loss)
+  
