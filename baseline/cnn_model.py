@@ -226,8 +226,6 @@ model.fit(train_dataset,
          callbacks=[early_stopping_callback, tensorboard_callback, checkpoint_callback]
         )
 
-
-
 val_loss = model.evaluate(test_dataset)[0]
 if val_loss < baseline_val_loss:
   print("New model saved.", val_loss, baseline_val_loss)

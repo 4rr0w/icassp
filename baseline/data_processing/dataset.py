@@ -132,10 +132,10 @@ class Dataset:
 
             tfrecord_filename = './records/' + prefix + '_' + str(counter) + '.tfrecords'
 
-            # if os.path.isfile(tfrecord_filename):
-            #     print(f"Skipping {tfrecord_filename}")
-            #     counter += 1
-            #     continue
+            if os.path.isfile(tfrecord_filename):
+                print(f"Skipping {tfrecord_filename}")
+                counter += 1
+                continue
 
             writer = tf.io.TFRecordWriter(tfrecord_filename)
             clean_filenames_sublist = self.clean_filenames[i:i + subset_size]
