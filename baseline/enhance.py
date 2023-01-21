@@ -16,7 +16,7 @@ from evaluate import make_scene_listener_list
 from omegaconf import DictConfig
 from scipy.io import wavfile
 from tqdm import tqdm
-from data_processing.feature_extractor import FeatureExtractor
+from cnn.data_processing.feature_extractor import FeatureExtractor
 import math
 import matplotlib.pyplot as plt
 

@@ -4,7 +4,6 @@ import librosa
 import sounddevice as sd
 import tensorflow as tf
 from scipy.io import wavfile
-import pydub
 
 def inverse_stft_transform(stft_features, window_length, overlap):
     return librosa.istft(stft_features, win_length=window_length, hop_length=overlap)

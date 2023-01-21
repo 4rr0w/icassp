@@ -127,11 +127,11 @@ class Dataset:
     def create_tf_record(self, *, prefix, subset_size, parallel=True):
         counter = 0
         p = multiprocessing.Pool(multiprocessing.cpu_count())
-
+        if not os.path.exists(os.path.join('records')):
+            os.makedirs(os.path.join('records'))
         for i in range(0, len(self.clean_filenames), subset_size):
-
-            tfrecord_filename = './records/' + prefix + '_' + str(counter) + '.tfrecords'
-
+            tfrecord_filename =  os.path.join('records',  prefix + '_' + str(counter) + '.tfrecords')
+            
             if os.path.isfile(tfrecord_filename):
                 print(f"Skipping {tfrecord_filename}")
                 counter += 1

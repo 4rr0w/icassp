@@ -4,9 +4,6 @@ import os
 import datetime
 import matplotlib.pyplot as plt
 import numpy as np
-import tensorflow as tf
-import IPython.display as ipd
-import librosa.display
 import scipy
 import glob
 import numpy as np
@@ -14,12 +11,10 @@ import math
 import warnings
 import pickle
 from sklearn.utils import shuffle
-import zipfile
 import tensorflow as tf
 from tensorflow.keras.layers import Conv2D, Input, LeakyReLU, Flatten, Dense, Reshape, Conv2DTranspose, BatchNormalization, Activation
 from tensorflow.keras import Model, Sequential
-
-
+ 
 windowLength = 256
 overlap      = round(0.25 * windowLength) # overlap of 75%
 ffTLength    = windowLength
