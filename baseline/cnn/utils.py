@@ -1,7 +1,6 @@
 import numpy as np
 import pickle
 import librosa
-import sounddevice as sd
 import tensorflow as tf
 from scipy.io import wavfile
 
