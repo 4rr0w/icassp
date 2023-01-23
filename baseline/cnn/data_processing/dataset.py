@@ -15,13 +15,11 @@ tf.random.set_seed(999)
 
 
 class Dataset:
-    def __init__(self, clean_filenames, noise_filenames, **config):
-        self.clean_filenames = clean_filenames
-        self.noise_filenames = noise_filenames
+    def __init__(self, filenames,  **config):
+        self.filenames = filenames
         self.sample_rate = config['fs']
         self.overlap = config['overlap']
         self.window_length = config['windowLength']
-        self.audio_max_duration = config['audio_max_duration']
 
     def _sample_noise_filename(self):
         return np.random.choice(self.noise_filenames)
@@ -64,32 +62,34 @@ class Dataset:
         ind = np.random.randint(0, noise_signal.size - clean_audio.size)
 
         noiseSegment = noise_signal[ind: ind + clean_audio.size]
-
+ 
         speech_power = np.sum(clean_audio ** 2)
         noise_power = np.sum(noiseSegment ** 2)
         noisyAudio = clean_audio + np.sqrt(speech_power / noise_power) * noiseSegment
         return noisyAudio
 
-    def parallel_audio_processing(self, clean_filename):
+    def parallel_audio_processing(self, filename):
+        clean_filename = filename.replace("_hr", "_target_CH0")
+        interferer_filename = filename.replace("_hr", "_interferer_CH0")
+        mix_filename = filename.replace("_hr", "_mix_CH0")
 
         clean_audio, _ = read_audio(clean_filename, self.sample_rate)
-
         # remove silent frame from clean audio
         clean_audio = self._remove_silent_frames(clean_audio)
 
-        noise_filename = self._sample_noise_filename()
-
+        noise_filename = interferer_filename
         # read the noise filename
         noise_audio, sr = read_audio(noise_filename, self.sample_rate)
-
         # remove silent frame from noise audio
         noise_audio = self._remove_silent_frames(noise_audio)
 
-        # sample random fixed-sized snippets of audio
-        clean_audio = self._audio_random_crop(clean_audio, duration=self.audio_max_duration)
+        # read the noise filename
+        mix_audio, sr = read_audio(mix_filename, self.sample_rate)
+        # remove silent frame from noise audio
+        mix_audio = self._remove_silent_frames(mix_audio)
 
         # add noise to input image
-        noiseInput = self._add_noise_to_clean_audio(clean_audio, noise_audio)
+        noiseInput = mix_audio
 
         # extract stft features from noisy audio
         noisy_input_fe = FeatureExtractor(noiseInput, windowLength=self.window_length, overlap=self.overlap,
@@ -129,7 +129,7 @@ class Dataset:
         p = multiprocessing.Pool(multiprocessing.cpu_count())
         if not os.path.exists(os.path.join('records')):
             os.makedirs(os.path.join('records'))
-        for i in range(0, len(self.clean_filenames), subset_size):
+        for i in range(0, len(self.filenames), subset_size):
             tfrecord_filename =  os.path.join('records',  prefix + '_' + str(counter) + '.tfrecords')
             
             if os.path.isfile(tfrecord_filename):
@@ -138,13 +138,13 @@ class Dataset:
                 continue
 
             writer = tf.io.TFRecordWriter(tfrecord_filename)
-            clean_filenames_sublist = self.clean_filenames[i:i + subset_size]
+            filenames_sublist = self.filenames[i:i + subset_size]
 
             print(f"Processing files from: {i} to {i + subset_size}")
             if parallel:
-                out = p.map(self.parallel_audio_processing, clean_filenames_sublist)
+                out = p.map(self.parallel_audio_processing, filenames_sublist)
             else:
-                out = [self.parallel_audio_processing(filename) for filename in clean_filenames_sublist]
+                out = [self.parallel_audio_processing(filename) for filename in filenames_sublist]
 
             for o in out:
                 noise_stft_magnitude = o[0]

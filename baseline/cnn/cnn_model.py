@@ -46,7 +46,6 @@ def full_pre_activation_block(x, filters, kernel_size, strides, padding='same', 
   x = BatchNormalization()(x)
   x = Activation('relu')(x)
   x = Conv2D(filters=filters, kernel_size=kernel_size, strides=strides, padding='same')(x)
-
   x = BatchNormalization()(x)
   x = Activation('relu')(x)
   x = Conv2D(filters=in_channels, kernel_size=kernel_size, strides=strides, padding='same')(x)
