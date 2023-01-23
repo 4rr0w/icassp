@@ -39,19 +39,6 @@ class Dataset:
     def get_noisy_audio(self, *, filename):
         return read_audio(filename, self.sample_rate)
 
-    def _audio_random_crop(self, audio, duration):
-        audio_duration_secs = librosa.core.get_duration(audio, self.sample_rate)
-
-        ## duration: length of the cropped audio in seconds
-        if duration >= audio_duration_secs:
-            # print("Passed duration greater than audio duration of: ", audio_duration_secs)
-            return audio
-
-        audio_duration_ms = math.floor(audio_duration_secs * self.sample_rate)
-        duration_ms = math.floor(duration * self.sample_rate)
-        idx = np.random.randint(0, audio_duration_ms - duration_ms)
-        return audio[idx: idx + duration_ms]
-
     def _add_noise_to_clean_audio(self, clean_audio, noise_signal):
         if len(clean_audio) >= len(noise_signal):
             # print("The noisy signal is smaller than the clean audio input. Duplicating the noise.")
@@ -75,18 +62,12 @@ class Dataset:
 
         clean_audio, _ = read_audio(clean_filename, self.sample_rate)
         # remove silent frame from clean audio
-        clean_audio = self._remove_silent_frames(clean_audio)
-
-        noise_filename = interferer_filename
-        # read the noise filename
-        noise_audio, sr = read_audio(noise_filename, self.sample_rate)
-        # remove silent frame from noise audio
-        noise_audio = self._remove_silent_frames(noise_audio)
+        # clean_audio = self._remove_silent_frames(clean_audio)
 
         # read the noise filename
         mix_audio, sr = read_audio(mix_filename, self.sample_rate)
         # remove silent frame from noise audio
-        mix_audio = self._remove_silent_frames(mix_audio)
+        # mix_audio = self._remove_silent_frames(mix_audio)
 
         # add noise to input image
         noiseInput = mix_audio
