@@ -22,13 +22,17 @@ inputFs      = 44.1e3
 fs           = 16e3
 numFeatures  = ffTLength//2 + 1
 numSegments  = 8
-print("windowLength:",windowLength)
+print("windowLength:",windowLength) 
 print("overlap:",overlap)
 print("ffTLength:",ffTLength)
 print("inputFs:",inputFs)
 print("fs:",fs)
 print("numFeatures:",numFeatures)
 print("numSegments:",numSegments)
+
+## Prepare and get datasets
+path_to_train_tfrecords = os.path.join('./records/', 'train_anecho500*.tfrecords')
+path_to_val_tfrecords = os.path.join('./records/', 'val_anecho500*.tfrecords')
 
 
 def conv_block(x, filters, kernel_size, strides, padding='same', use_bn=True):
@@ -182,13 +186,13 @@ def get_train_val_dataset(train_path, test_path):
   train_dataset = train_dataset.map(tf_record_parser)
   train_dataset = train_dataset.shuffle(8192)
   train_dataset = train_dataset.repeat()
-  train_dataset = train_dataset.batch(512)
+  train_dataset = train_dataset.batch(1024)
   train_dataset = train_dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
 
   test_dataset = tf.data.TFRecordDataset(val_tf_records)
   test_dataset = test_dataset.map(tf_record_parser)
   test_dataset = test_dataset.repeat(1)
-  test_dataset = test_dataset.batch(512)
+  test_dataset = test_dataset.batch(1024)
 
   return train_dataset, test_dataset
 
@@ -200,12 +204,9 @@ early_stopping_callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', p
 
 logdir = os.path.join("logs", datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
 tensorboard_callback = tf.keras.callbacks.TensorBoard(logdir, update_freq='batch')
-checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath='./denoiser_cnn_mix.h5', 
+checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath='./denoiser_cnn_new.h5', 
                                                          monitor='val_loss', save_best_only=True)
- 
-## Prepare and get datasets
-path_to_train_tfrecords = os.path.join('./records/', 'train_6_*.tfrecords')
-path_to_val_tfrecords = os.path.join('./records/', 'val_6_*.tfrecords')
+
 
 
 train_dataset, test_dataset = get_train_val_dataset(path_to_train_tfrecords, path_to_val_tfrecords)
@@ -214,16 +215,16 @@ baseline_val_loss = model.evaluate(test_dataset)[0]
 print(f"Baseline loss {baseline_val_loss}")
 
 model.fit(train_dataset,
-         steps_per_epoch=600, # you might need to change this
+         steps_per_epoch=800, # you might need to change this
          validation_data=test_dataset,
-         epochs=400,
+         epochs=100,
          callbacks=[early_stopping_callback, tensorboard_callback, checkpoint_callback]
         )
 
 val_loss = model.evaluate(test_dataset)[0]
 if val_loss < baseline_val_loss:
   print("New model saved.", val_loss, baseline_val_loss)
-  model.save('./denoiser_cnn_mix.h5')
+  model.save('./denoiser_cnn_new.h5')
 else:
   print("New model not saved, val_loss >= baseline_loss, won't be useful", val_loss, baseline_val_loss)
   

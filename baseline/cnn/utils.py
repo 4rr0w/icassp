@@ -45,8 +45,9 @@ def add_noise_to_clean_audio(clean_audio, noise_signal):
 def read_audio(filepath, sample_rate, normalize=True):
     audio, sr = librosa.load(filepath, sr=sample_rate)
     if normalize is True:
-        div_fac = 1 / np.max(np.abs(audio)) / 3.0
-        audio = audio * div_fac
+        audio = (audio / 32768.0).astype(np.float32)
+        # div_fac = 1 / np.max(np.abs(audio)) / 3.0
+        # audio = audio * div_fac
         # audio = librosa.util.normalize(audio)
     return audio, sr
 

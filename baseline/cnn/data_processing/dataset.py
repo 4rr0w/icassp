@@ -56,9 +56,9 @@ class Dataset:
         return noisyAudio
 
     def parallel_audio_processing(self, filename):
-        clean_filename = filename.replace("_hr", "_target_CH0")
-        interferer_filename = filename.replace("_hr", "_interferer_CH0")
-        mix_filename = filename.replace("_hr", "_mix_CH0")
+        clean_filename = filename.replace("_hr", "_target_anechoic_CH1")
+        interferer_filename = filename.replace("_hr", "_interferer_CH1")
+        mix_filename = filename.replace("_hr", "_mix_CH1")
 
         clean_audio, _ = read_audio(clean_filename, self.sample_rate)
         # remove silent frame from clean audio
