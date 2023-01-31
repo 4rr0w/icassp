@@ -69,9 +69,7 @@ def get_input_features(predictorsList):
         inputFeatures = prepare_input_features(noisy_stft_mag_features)
         # print("inputFeatures.shape", inputFeatures.shape)
         predictors.append(inputFeatures)
-
     return predictors
-
 
 def _bytes_feature(value):
     """Returns a bytes_list from a string / byte."""

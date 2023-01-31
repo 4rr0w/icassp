@@ -141,8 +141,8 @@ def enhance(cfg: DictConfig) -> None:
         denoised_left = denoise_with_cnn_model(ch1_data[:, 0], model)
         denoised_rigth = denoise_with_cnn_model(ch1_data[:, 1], model)
     
-        # # print(denoised_left, denoised_rigth)
-        # denoised_signal = np.column_stack((denoised_left, denoised_rigth))
+        # print(denoised_left, denoised_rigth)
+        denoised_signal = np.column_stack((denoised_left, denoised_rigth))
 
         # data = [
         # ch1_data, 
@@ -157,7 +157,7 @@ def enhance(cfg: DictConfig) -> None:
         # plot_wav(fs, data)
          
         wavfile.write(
-            enhanced_folder / f"{scene}_{listener}_enhanced.wav", fs, ch1_data
+            enhanced_folder / f"{scene}_{listener}_enhanced.wav", fs, denoised_signal
         )
 
 

@@ -60,7 +60,7 @@ def build_model(l2_strength):
   inputs = Input(shape=[numFeatures,numSegments,1])
   x = inputs
 
-  # -----
+  # ----- 
   x = tf.keras.layers.ZeroPadding2D(((4,4), (0,0)))(x)
   x = Conv2D(filters=18, kernel_size=[9,8], strides=[1, 1], padding='valid', use_bias=False,
               kernel_regularizer=tf.keras.regularizers.l2(l2_strength))(x)
@@ -199,34 +199,34 @@ def get_train_val_dataset(train_path, test_path):
   return train_dataset, test_dataset
 
 
-# model = build_model(l2_strength=0.0)
-# model.summary()
+model = build_model(l2_strength=0.0)
+model.summary()
 
-# early_stopping_callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=50, restore_best_weights=True, baseline=None)
+early_stopping_callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=50, restore_best_weights=True, baseline=None)
 
-# logdir = os.path.join("logs", datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
-# tensorboard_callback = tf.keras.callbacks.TensorBoard(logdir, update_freq='batch')
-# checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath='./denoiser_cnn_new.h5', 
-#                                                          monitor='val_loss', save_best_only=True)
+logdir = os.path.join("logs", datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+tensorboard_callback = tf.keras.callbacks.TensorBoard(logdir, update_freq='batch')
+checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath='./denoiser_cnn_new.h5', 
+                                                         monitor='val_loss', save_best_only=True)
 
 
 train_dataset, test_dataset = get_train_val_dataset(path_to_train_tfrecords, path_to_val_tfrecords)
 
-# baseline_val_loss = model.evaluate(test_dataset)[0]
-# print(f"Baseline loss {baseline_val_loss}")
+baseline_val_loss = model.evaluate(test_dataset)[0]
+print(f"Baseline loss {baseline_val_loss}")
 
-# model.fit(train_dataset,
-#          steps_per_epoch=800, # you might need to change this
-#          validation_data=test_dataset,
-#          epochs=100,
-#          callbacks=[early_stopping_callback, tensorboard_callback, checkpoint_callback],
+model.fit(train_dataset,
+         steps_per_epoch=800, # you might need to change this
+         validation_data=test_dataset,
+         epochs=100,
+         callbacks=[early_stopping_callback, tensorboard_callback, checkpoint_callback],
          
-#         )
+        )
 
-# val_loss = model.evaluate(test_dataset)[0]
-# if val_loss < baseline_val_loss:
-#   print("New model saved.", val_loss, baseline_val_loss)
-#   model.save('./denoiser_cnn_new.h5')
-# else:
-#   print("New model not saved, val_loss >= baseline_loss, won't be useful", val_loss, baseline_val_loss)
+val_loss = model.evaluate(test_dataset)[0]
+if val_loss < baseline_val_loss:
+  print("New model saved.", val_loss, baseline_val_loss)
+  model.save('./denoiser_cnn_new.h5')
+else:
+  print("New model not saved, val_loss >= baseline_loss, won't be useful", val_loss, baseline_val_loss)
   
