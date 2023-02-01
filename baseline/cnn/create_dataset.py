@@ -17,7 +17,6 @@ def create():
     print(gpus)
 
     tf.device('/gpu:0')
-
     path_to_scene_files = "../../../clarity_CEC2_data_train/clarity_data/train/scenes/"
   
     # get training and validation file names
@@ -27,7 +26,7 @@ def create():
     windowLength = 256
     config = {'windowLength': windowLength,
             'overlap': round(0.25 * windowLength),
-            'fs': 16000,
+            'fs': 8000,
         }
 
     ## Create Train Set

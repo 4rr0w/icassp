@@ -39,22 +39,6 @@ class Dataset:
     def get_noisy_audio(self, *, filename):
         return read_audio(filename, self.sample_rate)
 
-    def _add_noise_to_clean_audio(self, clean_audio, noise_signal):
-        if len(clean_audio) >= len(noise_signal):
-            # print("The noisy signal is smaller than the clean audio input. Duplicating the noise.")
-            while len(clean_audio) >= len(noise_signal):
-                noise_signal = np.append(noise_signal, noise_signal)
-
-        ## Extract a noise segment from a random location in the noise file
-        ind = np.random.randint(0, noise_signal.size - clean_audio.size)
-
-        noiseSegment = noise_signal[ind: ind + clean_audio.size]
- 
-        speech_power = np.sum(clean_audio ** 2)
-        noise_power = np.sum(noiseSegment ** 2)
-        noisyAudio = clean_audio + np.sqrt(speech_power / noise_power) * noiseSegment
-        return noisyAudio
-
     def parallel_audio_processing(self, filename):
         clean_filename = filename.replace("_hr", "_target_anechoic_CH1")
         interferer_filename = filename.replace("_hr", "_interferer_CH1")

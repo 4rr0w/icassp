@@ -212,15 +212,16 @@ checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath='./denoiser_cn
 
 train_dataset, test_dataset = get_train_val_dataset(path_to_train_tfrecords, path_to_val_tfrecords)
 
-baseline_val_loss = model.evaluate(test_dataset)[0]
+
+# baseline_val_loss = model.evaluate(test_dataset)[0]
+baseline_val_loss = 1000
 print(f"Baseline loss {baseline_val_loss}")
 
 model.fit(train_dataset,
-         steps_per_epoch=800, # you might need to change this
+         steps_per_epoch=300, # you might need to change this
          validation_data=test_dataset,
-         epochs=100,
+         epochs=5,
          callbacks=[early_stopping_callback, tensorboard_callback, checkpoint_callback],
-         
         )
 
 val_loss = model.evaluate(test_dataset)[0]
