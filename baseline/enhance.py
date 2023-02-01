@@ -41,7 +41,7 @@ def revert_features_to_audio(features, phase, noiseAudioFeatureExtractor, cleanM
     features = features * np.exp(1j * phase)  # that fixes the abs() ope previously done
 
     features = np.transpose(features, (1, 0))
-    return noiseAudioFeatureExtractor.get_audio_from_stft_spectrogram(features)
+    return noiseAudioFeatureExtractor.get_audio_from_mel_spectrogram(features)
 
 
 def prepare_input_features(stft_features):
@@ -57,7 +57,7 @@ def prepare_input_features(stft_features):
 
 def denoise_with_cnn_model(signal, model):
     noiseAudioFeatureExtractor = FeatureExtractor(signal, windowLength=windowLength, overlap=overlap, sample_rate=fs)
-    noise_stft_features = noiseAudioFeatureExtractor.get_stft_spectrogram()
+    noise_stft_features = noiseAudioFeatureExtractor.get_mel_spectrogram()
 
     # Paper: Besides, spectral phase was not used in the training phase.
     # At reconstruction, noisy spectral phase was used instead to
@@ -95,7 +95,7 @@ def plot_wav(sr, data):
 @hydra.main(config_path=".", config_name="config")
 def enhance(cfg: DictConfig) -> None:
 
-    model_name = "../sigmoid_cnn_new.h5"
+    model_name = "../cnn_new.h5"
     model = tf.keras.models.load_model(f"{model_name}", compile = False)
 
     enhanced_folder = pathlib.Path("enhanced_signals")
@@ -124,26 +124,26 @@ def enhance(cfg: DictConfig) -> None:
         #    listener_audiograms[listener]["audiogram_levels_r"]
         # )
 
-        ch1_data, fs = librosa.load(
-        pathlib.Path(cfg.path.scenes_folder) / f"{scene}_mix_CH1.wav", sr=16000
+        fs, ch1_data = wavfile.read(
+        pathlib.Path(cfg.path.scenes_folder) / f"{scene}_mix_CH1.wav"
         )
-        # _, ch2_data = librosa.load(
-        #     pathlib.Path(cfg.path.scenes_folder) / f"{scene}_mix_CH2.wav"
-        # )
-        # _, ch3_data = librosa.load(
-        #     pathlib.Path(cfg.path.scenes_folder) / f"{scene}_mix_CH3.wav"
-        # )
+        _, ch2_data = wavfile.read(
+            pathlib.Path(cfg.path.scenes_folder) / f"{scene}_mix_CH2.wav"
+        )
+        _, ch3_data = wavfile.read(
+            pathlib.Path(cfg.path.scenes_folder) / f"{scene}_mix_CH3.wav"
+        )
 
         # ## Convert to 32-bit floating point scaled between -1 and 1
         ch1_data = (ch1_data / 32768.0).astype(np.float32)
-        # ch2_data = (ch2_data / 32768.0).astype(np.float32)
-        # ch3_data = (ch3_data / 32768.0).astype(np.float32)    
+        ch2_data = (ch2_data / 32768.0).astype(np.float32)
+        ch3_data = (ch3_data / 32768.0).astype(np.float32)    
 
-        # denoised_left = denoise_with_cnn_model(ch1_data[:, 0], model)
-        # denoised_rigth = denoise_with_cnn_model(ch1_data[:, 1], model)
+        denoised_left = denoise_with_cnn_model(ch1_data[:, 0], model)
+        denoised_rigth = denoise_with_cnn_model(ch1_data[:, 1], model)
     
-        # # print(denoised_left, denoised_rigth)
-        # denoised_signal = np.column_stack((denoised_left, denoised_rigth))
+        # print(denoised_left, denoised_rigth)
+        denoised_signal = np.column_stack((denoised_left, denoised_rigth))
 
         # steps = len(ch1_data) // windowLength
         # reduced_mix = nr.reduce_noise(y=ch1_data[:windowLength], sr=fs)
@@ -151,9 +151,9 @@ def enhance(cfg: DictConfig) -> None:
         #     rm = nr.reduce_noise(y=ch1_data[(i - 1) * windowLength: (i) * windowLength], sr=fs)
         #     np.append(reduced_mix,rm)
 
-        denoised_signal = nr.reduce_noise(y=ch1_data, sr=fs, chunk_size=10000, n_fft=512)
+        denoised_signal = nr.reduce_noise(y=denoised_signal, sr=fs)
 
-        denoised_signal = np.column_stack((denoised_signal, denoised_signal))
+        # denoised_signal = np.column_stack((denoised_signal, denoised_signal))
         # data = [
         # ch1_data, 
         # ch2_data, 

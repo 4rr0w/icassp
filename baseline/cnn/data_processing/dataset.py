@@ -15,8 +15,9 @@ tf.random.set_seed(999)
 
 
 class Dataset:
-    def __init__(self, filenames,  **config):
+    def __init__(self, filenames, use_mel_spec=False, **config):
         self.filenames = filenames
+        self.use_mel_spec = use_mel_spec
         self.sample_rate = config['fs']
         self.overlap = config['overlap']
         self.window_length = config['windowLength']
@@ -59,7 +60,10 @@ class Dataset:
         # extract stft features from noisy audio
         noisy_input_fe = FeatureExtractor(noiseInput, windowLength=self.window_length, overlap=self.overlap,
                                           sample_rate=self.sample_rate)
+
         noise_spectrogram = noisy_input_fe.get_stft_spectrogram()
+        if self.use_mel_spec:
+            noise_spectrogram = noisy_input_fe.get_mel_spectrogram()
 
         # Or get the phase angle (in radians)
         # noisy_stft_magnitude, noisy_stft_phase = librosa.magphase(noisy_stft_features)
@@ -71,8 +75,10 @@ class Dataset:
         # extract stft features from clean audio
         clean_audio_fe = FeatureExtractor(clean_audio, windowLength=self.window_length, overlap=self.overlap,
                                           sample_rate=self.sample_rate)
+
         clean_spectrogram = clean_audio_fe.get_stft_spectrogram()
-        # clean_spectrogram = cleanAudioFE.get_mel_spectrogram()
+        if self.use_mel_spec:
+            clean_spectrogram = clean_audio_fe.get_mel_spectrogram()
 
         # get the clean phase
         clean_phase = np.angle(clean_spectrogram)
@@ -96,7 +102,6 @@ class Dataset:
             os.makedirs(os.path.join('records'))
         for i in range(0, len(self.filenames), subset_size):
             tfrecord_filename =  os.path.join('records',  prefix + '_' + str(counter) + '.tfrecords')
-            
             if os.path.isfile(tfrecord_filename):
                 print(f"Skipping {tfrecord_filename}")
                 counter += 1

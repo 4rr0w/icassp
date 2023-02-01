@@ -31,8 +31,8 @@ print("numFeatures:",numFeatures)
 print("numSegments:",numSegments)
 
 ## Prepare and get datasets
-path_to_train_tfrecords = os.path.join('./records/', 'train_anecho500*.tfrecords')
-path_to_val_tfrecords = os.path.join('./records/', 'val_anecho500*.tfrecords')
+path_to_train_tfrecords = os.path.join('./records/', 'train_mel*.tfrecords')
+path_to_val_tfrecords = os.path.join('./records/', 'val_mel*.tfrecords')
 
 
 def conv_block(x, filters, kernel_size, strides, padding='same', use_bn=True):
@@ -48,7 +48,7 @@ def full_pre_activation_block(x, filters, kernel_size, strides, padding='same', 
   in_channels = x.shape[-1]
 
   x = BatchNormalization()(x)
-  x = Activation('relu')(x)
+  x = Activation('relu')(x) 
   x = Conv2D(filters=filters, kernel_size=kernel_size, strides=strides, padding='same')(x)
   x = BatchNormalization()(x)
   x = Activation('relu')(x)
@@ -206,7 +206,7 @@ early_stopping_callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', p
 
 logdir = os.path.join("logs", datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
 tensorboard_callback = tf.keras.callbacks.TensorBoard(logdir, update_freq='batch')
-checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath='./denoiser_cnn_new.h5', 
+checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath='./cnn_new.h5', 
                                                          monitor='val_loss', save_best_only=True)
 
 
@@ -227,7 +227,7 @@ model.fit(train_dataset,
 val_loss = model.evaluate(test_dataset)[0]
 if val_loss < baseline_val_loss:
   print("New model saved.", val_loss, baseline_val_loss)
-  model.save('./denoiser_cnn_new.h5')
+  model.save('./cnn_new.h5')
 else:
   print("New model not saved, val_loss >= baseline_loss, won't be useful", val_loss, baseline_val_loss)
   
