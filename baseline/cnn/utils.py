@@ -59,7 +59,6 @@ def prepare_input_features(stft_features, numSegments, numFeatures):
         stftSegments[:, :, index] = noisySTFT[:, index:index + numSegments]
     return stftSegments
 
-
 def get_input_features(predictorsList):
     predictors = []
     for noisy_stft_mag_features in predictorsList:
